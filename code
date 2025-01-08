@@ -1,40 +1,243 @@
-#code#
 import streamlit as st
-from PIL import Image
 import google.generativeai as genai
-# Configure the generative AI with your actual API key
-genai.configure(api_key='')
-# Check if session state has response
+from PIL import Image
+from googletrans import Translator
+import base64
+
+# Helper function to format text as markdown
+def to_markdown(text):
+    text = text.replace('.', '  *')
+    return "> " + text
+
+# Initialize the Google Translator
+translator = Translator()
+
+# Paths to the logo images
+left_logo_path = "D:\Gemini\logo sih.png"
+right_logo_path = "D:\Gemini\logo ngp.jpg"
+icon_path = "D:\Gemini\logo app.png"
+sidebar_icon_path = "D:\Gemini\logo app.png"  # Add the icon for Snapwhiz in the sidebar
+
+# Function to load image as base64
+def load_image_as_base64(image_path):
+    with open(image_path, "rb") as image_file:
+        encoded_image = base64.b64encode(image_file.read()).decode()
+    return encoded_image
+
+# Load the logos as base64
+left_logo_base64 = load_image_as_base64(left_logo_path)
+right_logo_base64 = load_image_as_base64(right_logo_path)
+icon_base64 = load_image_as_base64(icon_path)
+sidebar_icon_base64 = load_image_as_base64(sidebar_icon_path)
+
+# Set custom CSS for the sidebar, text input, and button
+st.markdown("""
+    <style>
+        .reportview-container, .main {
+            background-color: #ffffff;
+            color: #000000;
+        }
+        [data-testid="stSidebar"] {
+            background-color: #f0f0f0 !important;
+            color: #000000 !important;
+            position: fixed !important;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 250px;
+            z-index: 1000;
+            overflow-y: auto;
+            border-right: 1px solid #ddd;
+        }
+        .main {
+            margin-left: 270px;
+            padding: 20px;
+        }
+        [data-testid="stSidebar"] .css-1cpxy9d {
+            color: #000000 !important;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            background-color: #ffffff;
+            color: #000000;
+        }
+        .header img {
+            height: 60px;
+            margin: 0 10px;
+        }
+        .header h1 {
+            color: #000000;
+            font-size: 1.5em;
+            margin: 0;
+        }
+        .subheader {
+            text-align: center;
+            color: #000000;
+            font-size: 1.2em;
+            margin-top: 10px;
+        }
+        .file-name-title {
+            color: #000000;
+            font-size: 1em;
+            font-weight: bold;
+        }
+        .chatbot-heading {
+            font-size: 1.5em;
+            color: #000000;
+            text-align: center;
+        }
+        .upload-header {
+            font-size: 1.5em;
+            color: #000000;
+        }
+        .expected-solution {
+            text-align: justify;
+            color: #000000;
+            margin-bottom: 20px;
+        }
+        .stTextInput label {
+            color: #000000 !important;
+        }
+        /* Custom CSS for the button */
+        div.stButton > button {
+            color: white !important;
+            background-color: black !important;
+            border-radius: 8px;
+            padding: 10px 20px;
+        }
+        /* Custom CSS for 'Original Response' and 'Translated Response' */
+        .response-heading {
+            font-size: 1.5em;
+            color: #000000;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
+# Add content to the sidebar
+with st.sidebar:
+    st.markdown('<h1 style="color: black;">Problem Statement ID: 1604</h1>', unsafe_allow_html=True)
+    st.markdown('<h2 style="color: black;"> Theme: Smart Automation </h2>', unsafe_allow_html=True)
+    st.markdown(f"""
+        <div class="expected-solution">
+            <p>Expected Solution: Image recognition Chatbot is expected to detect the object in the image and have the related dialog of the image after training, also have understanding of the sender’s messages so that it can predict which sort of response will be relevant and it must be correct lexically and grammatically while generating the reply.</p>
+            <h2 style="color: black;"><strong>Snapwhiz <img src="data:image/png;base64,{sidebar_icon_base64}" style="height:20px;vertical-align:middle;margin-left:10px;" alt="Snapwhiz Icon"></strong></h2>
+            <ul>
+                <li><a href="https://gemini.google.com/" target="_blank">Gemini</a></li>
+                <li><a href="https://pillow.readthedocs.io" target="_blank">Pillow</a></li>
+                <li><a href="https://huggingface.co/" target="_blank">Blip Model (Hugging Face)</a></li>
+                <li><a href="https://www.streamlit.com" target="_blank">Streamlit</a>
+                <li><a href="https://translate.google.co.in" target="_blank">Translator</a></li>
+            </ul>
+        </div>
+    """, unsafe_allow_html=True)
+
+# Header and subheader
+st.markdown(f"""
+    <div class="header">
+        <img src="data:image/png;base64,{left_logo_base64}" alt="Left Logo">
+        <h1>SMART INDIA HACKATHON - 2024</h1>
+        <img src="data:image/png;base64,{right_logo_base64}" alt="Right Logo">
+    </div>
+    <div class="subheader">
+        Dr. N.G.P. Arts and Science College
+    </div>
+    """, unsafe_allow_html=True)
+
+# Set heading for the chatbot with the icon aligned to the right
+st.markdown(f'''
+    <div style="text-align: center;">
+        <span style="font-size:1.5em;color:black;vertical-align:middle;">Chat with Snapwhiz </span>
+        <img src="data:image/png;base64,{icon_base64}" style="height:40px;vertical-align:middle;margin-left:10px;" alt="Icon">
+    </div>
+''', unsafe_allow_html=True)
+
+# Set header for file uploader with updated font size and color
+st.markdown('<h2 class="upload-header">Please upload an image</h2>', unsafe_allow_html=True)
+
+# Configure the generative AI with your API key
+genai.configure(api_key='AIzaSyCbuF1YRW1RnM84eTN6Yhnb48dCLYRfxdU')
+
+# Check if session state has response or selected language
 if 'generated_response' not in st.session_state:
     st.session_state.generated_response = ''
+if 'selected_language' not in st.session_state:
+    st.session_state.selected_language = 'English'
+
 # Upload an image
 uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
+
 # Display the image if uploaded
 if uploaded_file is not None:
-    try:
-        # Open and display the uploaded image
-        image = Image.open(uploaded_file)
-        st.image(image, caption='Uploaded Image.', use_column_width=True)
-        st.write("Image uploaded successfully!")
-        # Input prompt from user
-        user_prompt = st.text_input("Ask a question about the image:")
-        if st.button("Generate Response"):
-            if user_prompt:
-                try:
-                    # Generate response using the image and text prompt
-                    model_photo = genai.GenerativeModel('gemini-1.5-flash')
-                    response = model_photo.generate_content([user_prompt, image], stream=True)
-                    response.resolve()
-                    # Store the generated response in session state
-                    st.session_state.generated_response = response.text
-                except Exception as e:
-                    st.error(f"Error occurred: {e}")
-            else:
-                st.write("Please enter a prompt to generate a response.")
-    
-    except Exception as e:
-        st.error(f"Error loading the image: {e}")
+    image = Image.open(uploaded_file)
+    st.image(image, caption='Uploaded Image.', use_column_width=True)
+    st.write("Image uploaded successfully!")
+
+    # Input prompt from user
+    user_prompt = st.text_input("Ask a question about the image:")
+
+    if st.button("Generate Response"):
+        if user_prompt:
+            try:
+                # Generate response using the image and text prompt
+                model_photo = genai.GenerativeModel('gemini-1.5-flash')
+                response = model_photo.generate_content([user_prompt, image], stream=True)
+                response.resolve()
+
+                # Store the generated response in session state
+                st.session_state.generated_response = response.text
+
+            except Exception as e:
+                st.error(f"Error occurred: {e}")
+        else:
+            st.write("Please enter a prompt to generate a response.")
+
 # If a response was generated, display it
 if st.session_state.generated_response:
-    st.write("Generated Response:")
-    st.write(st.session_state.generated_response)
+    original_text = st.session_state.generated_response
+    st.markdown('<div class="response-heading">Original Response:</div>', unsafe_allow_html=True)
+    st.markdown(to_markdown(original_text))
+
+    # Language selection dropdown below the response section
+    languages = {
+        "English": "en",
+        "Spanish": "es",
+        "French": "fr",
+        "German": "de",
+        "Chinese (Simplified)": "zh-CN",
+        "Hindi": "hi",
+        "Bengali": "bn",
+        "Punjabi": "pa",
+        "Gujarati": "gu",
+        "Odia (Oriya)": "or",
+        "Sindhi": "sd",
+        "Urdu": "ur",
+        "Nepali": "ne",
+        "Sinhala (Sinhalese)": "si",
+        "Maithili": "mai",
+        "Tamil": "ta",
+        "Telugu": "te",
+        "Kannada": "kn",
+        "Malayalam": "ml"
+    }
+
+    # Language selection
+    st.session_state.selected_language = st.selectbox(
+        "Select a language to translate the response:",
+        list(languages.keys()),
+        index=list(languages.keys()).index(st.session_state.selected_language)
+    )
+
+    # Translate the response to the selected language
+    if st.session_state.selected_language:
+        translated_response = translator.translate(original_text, dest=languages[st.session_state.selected_language])
+        translated_text = translated_response.text
+
+        # Display the translated response
+        st.markdown(f'<div class="response-heading">Translated Response ({st.session_state.selected_language}):</div>', unsafe_allow_html=True)
+        st.markdown(to_markdown(translated_text))
+
+else:
+    st.write("Please upload an image and generate a response.")
