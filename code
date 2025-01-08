@@ -1,0 +1,40 @@
+#code#
+import streamlit as st
+from PIL import Image
+import google.generativeai as genai
+# Configure the generative AI with your actual API key
+genai.configure(api_key='')
+# Check if session state has response
+if 'generated_response' not in st.session_state:
+    st.session_state.generated_response = ''
+# Upload an image
+uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
+# Display the image if uploaded
+if uploaded_file is not None:
+    try:
+        # Open and display the uploaded image
+        image = Image.open(uploaded_file)
+        st.image(image, caption='Uploaded Image.', use_column_width=True)
+        st.write("Image uploaded successfully!")
+        # Input prompt from user
+        user_prompt = st.text_input("Ask a question about the image:")
+        if st.button("Generate Response"):
+            if user_prompt:
+                try:
+                    # Generate response using the image and text prompt
+                    model_photo = genai.GenerativeModel('gemini-1.5-flash')
+                    response = model_photo.generate_content([user_prompt, image], stream=True)
+                    response.resolve()
+                    # Store the generated response in session state
+                    st.session_state.generated_response = response.text
+                except Exception as e:
+                    st.error(f"Error occurred: {e}")
+            else:
+                st.write("Please enter a prompt to generate a response.")
+    
+    except Exception as e:
+        st.error(f"Error loading the image: {e}")
+# If a response was generated, display it
+if st.session_state.generated_response:
+    st.write("Generated Response:")
+    st.write(st.session_state.generated_response)
