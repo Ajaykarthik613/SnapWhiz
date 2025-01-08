@@ -4,7 +4,9 @@ Snapwhiz allows users to upload an image and ask questions about it. The app use
 How it Works:
 
 1.Upload an Image: The user selects an image (JPG/PNG).
-2Ask a Question: After uploading, the user can type a question related to the image.
+
+2.Ask a Question: After uploading, the user can type a question related to the image.
+
 3.Get a Response: The app processes the question and image, generating a response using Google Generative AI.
 
 Technologies Used:
